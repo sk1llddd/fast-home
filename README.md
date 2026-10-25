@@ -191,3 +191,7 @@ docs/
   bench.sh                     the benchmark script
   screenshots/
 ```
+
+## License
+
+MIT. See [LICENSE](LICENSE).
