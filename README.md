@@ -120,18 +120,61 @@ What these numbers mean, and what they don't:
 
 ## Build
 
-`launcher/build.sh` compiles both APKs with `javac`, `d8` and `aapt2`. It expects:
+`launcher/build.sh` compiles both APKs with `javac`, `d8` and `aapt2`, the same tools Android Studio uses, without needing Android Studio itself. You need:
 
-- JDK 17 at `/opt/homebrew/opt/openjdk@17` (Homebrew on macOS),
-- the Android SDK at `~/android-sdk` with build-tools 30.0.3 and platform 30,
-- `ffmpeg` (optional) to shrink background photos to 1920×1080,
-- a `launcher/debug.keystore` (password `android`) to sign with. It's kept out of git, so make your own: `keytool -genkeypair -keystore launcher/debug.keystore -storepass android -keypass android -alias key -keyalg RSA -dname CN=debug -validity 10000`.
+- JDK 17,
+- zsh, `zip` and `unzip`,
+- the Android SDK command-line tools, with build-tools 30.0.3, platform 30 and platform-tools (which includes `adb`),
+- `ffmpeg` (optional) to shrink background photos to 1920×1080. Without it the photos are bundled at full size.
+
+The script looks for the SDK in `$ANDROID_HOME`, then `~/android-sdk`, and for the JDK in `$JAVA_HOME`, then Homebrew, then your `PATH`. The first build creates a signing key, `launcher/debug.keystore`, which git ignores. Keep it: an APK signed with a different key can't update the installed app, and uninstalling first wipes your Fast Home settings.
+
+### macOS
+
+zsh and `zip` come with macOS. Install the rest with [Homebrew](https://brew.sh):
 
 ```sh
-launcher/build.sh   # writes launcher/out/fasthome.apk and launcher/out/fasthome-redirect.apk
+brew install openjdk@17 ffmpeg
+export PATH="$(brew --prefix openjdk@17)/bin:$PATH"
+mkdir -p ~/android-sdk/cmdline-tools && cd ~/android-sdk/cmdline-tools
+curl -Lo tools.zip https://dl.google.com/android/repository/commandlinetools-mac-11076708_latest.zip
+unzip -q tools.zip && mv cmdline-tools latest && rm tools.zip
+~/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+~/android-sdk/cmdline-tools/latest/bin/sdkmanager "build-tools;30.0.3" "platforms;android-30" "platform-tools"
 ```
 
-The version number is the build date. Edit the paths at the top of `build.sh` if your SDK or JDK lives elsewhere.
+### Linux
+
+These commands are for Debian and Ubuntu. Other distributions have the same packages under similar names. Google only ships the build tools for x86-64 Linux, so this won't work on ARM Linux.
+
+```sh
+sudo apt install openjdk-17-jdk-headless zsh zip unzip curl ffmpeg
+mkdir -p ~/android-sdk/cmdline-tools && cd ~/android-sdk/cmdline-tools
+curl -Lo tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+unzip -q tools.zip && mv cmdline-tools latest && rm tools.zip
+~/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+~/android-sdk/cmdline-tools/latest/bin/sdkmanager "build-tools;30.0.3" "platforms;android-30" "platform-tools"
+```
+
+### Windows
+
+Build inside WSL, the Linux environment built into Windows 10 and 11. `build.sh` is a zsh script, and the Windows versions of the SDK tools are `.bat` and `.exe` files it can't run. In PowerShell as administrator:
+
+```powershell
+wsl --install -d Ubuntu
+```
+
+Restart if asked, open **Ubuntu** from the Start menu, and follow the Linux steps above. Keep the repo inside the Ubuntu home folder (`~`), not under `/mnt/c`, where file permissions and speed are worse. `adb connect` reaches the TV over Wi-Fi from WSL as it would from any Linux machine.
+
+### Then, on any of them
+
+```sh
+git clone <this repo's URL> fast-home && cd fast-home
+launcher/build.sh                       # writes launcher/out/fasthome.apk and launcher/out/fasthome-redirect.apk
+export PATH="$HOME/android-sdk/platform-tools:$PATH"   # for adb
+```
+
+Then follow [Install](#install) above. The version number is the build date.
 
 ### Layout
 

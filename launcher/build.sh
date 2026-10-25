@@ -8,8 +8,16 @@
 #   adb -s 192.168.1.136:5555 shell pm grant fast.home.redirect android.permission.READ_LOGS   # optional, ~380 ms faster Home;
 #     grant it before turning the helper on in Settings > Accessibility (it takes effect when the helper starts)
 cd "${0:A:h}"
-export JAVA_HOME=/opt/homebrew/opt/openjdk@17 PATH=/opt/homebrew/opt/openjdk@17/bin:$PATH
-BT=$HOME/android-sdk/build-tools/30.0.3; AJ=$HOME/android-sdk/platforms/android-30/android.jar
+# JDK 17: $JAVA_HOME if set, else Homebrew's openjdk@17 on macOS, else whatever java is on PATH.
+if [[ -z $JAVA_HOME ]]; then for d in /opt/homebrew/opt/openjdk@17 /usr/local/opt/openjdk@17; do [[ -d $d ]] && export JAVA_HOME=$d && break; done; fi
+[[ -n $JAVA_HOME ]] && export PATH=$JAVA_HOME/bin:$PATH
+SDK=${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/android-sdk}}
+BT=$SDK/build-tools/30.0.3; AJ=$SDK/platforms/android-30/android.jar
+for need in javac keytool zip; do command -v $need >/dev/null || { echo "missing: $need (see README > Build)"; exit 1; }; done
+[[ -f $AJ && -x $BT/aapt2 ]] || { echo "Android SDK not found at $SDK: set ANDROID_HOME, then: sdkmanager \"build-tools;30.0.3\" \"platforms;android-30\""; exit 1; }
+# Signing key: made once and kept out of git. Changing it later means uninstalling the app (and its settings) on the TV.
+[[ -f debug.keystore ]] || keytool -genkeypair -keystore debug.keystore -storepass android -keypass android -alias debug \
+  -keyalg RSA -keysize 2048 -validity 10000 -dname CN=debug >/dev/null 2>&1 || { echo "keytool failed"; exit 1; }
 VER=(--version-code $(date +%y%m%d%H) --version-name $(date +%Y.%m.%d))  # version = build date
 rm -rf out && mkdir -p out/assets
 for f in assets/*(.N); do
