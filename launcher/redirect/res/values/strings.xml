@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="description">Makes the remote\'s Home button open Fast Home instead of Amazon\'s home screen. Turn this off to get Amazon\'s home screen back.</string>
+</resources>

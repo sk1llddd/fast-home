@@ -1,0 +1,15 @@
+## Stock Amazon launcher
+hot start (ms, median of 5): 239
+home press -> settled (ms, median of 5): 1332
+memory: launcher 202 MB PSS, Amazon launcher 182 MB, TV MemAvailable 585 MB
+idle 30 s: 25.0% of one core; whole TV 16% busy
+scroll: 560 frames, (83.21%) janky, p50 27ms, p90 97ms, p99 300ms
+APK: 26.7 MB
+## Fast Home (with Home-button helper)
+hot start (ms, median of 5): 108
+home press -> settled (ms, median of 5): 702
+memory: launcher 53 MB PSS, Amazon launcher 135 MB, TV MemAvailable 705 MB
+idle 30 s: 0.0% of one core; whole TV 6% busy
+scroll: 486 frames, (53.29%) janky, p50 17ms, p90 29ms, p99 38ms
+APK: 1.9 MB
+## Fast Home cold start (ms, median of 5): 1004
